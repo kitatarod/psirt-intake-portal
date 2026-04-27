@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PSIRT Dashboard</title>
+</head>
+<body>
+    <h1>PSIRT Dashboard</h1>
+    <p>Manage incoming vulnerability reports and update their triage status.</p>
+
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Product</th>
+            <th>Hardware</th>
+            <th>Firmware</th>
+            <th>CVSS</th>
+            <th>Status</th>
+            <th>Created</th>
+        </tr>
+
+        {% for report in reports %}
+        <tr>
+            <td>{{ report.id }}</td>
+            <td>{{ report.title }}</td>
+            <td>{{ report.product }}</td>
+            <td>{{ report.hardware_version }}</td>
+            <td>{{ report.firmware_version }}</td>
+            <td>{{ report.cvss_score }}</td>
+            <td>
+                <form method="post" action="/dashboard/{{ report.id }}/status">
+                    <select name="status" onchange="this.form.submit()">
+                        <option value="New" {% if report.status == "New" %}selected{% endif %}>New</option>
+                        <option value="Needs Info" {% if report.status == "Needs Info" %}selected{% endif %}>Needs Info</option>
+                        <option value="Triaged" {% if report.status == "Triaged" %}selected{% endif %}>Triaged</option>
+                        <option value="Closed" {% if report.status == "Closed" %}selected{% endif %}>Closed</option>
+                    </select>
+                </form>
+            </td>
+            <td>{{ report.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <p><a href="/submit">Submit another report</a></p>
+    <p><a href="/">Back to Home</a></p>
+</body>
+</html>
