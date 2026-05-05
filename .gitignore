@@ -1,8 +1,11 @@
+.venv/
 venv/
 __pycache__/
 *.pyc
 psirt_portal.db
+*.db
 .idea/
 .vscode/
 uploads/*
 !uploads/.gitkeep
+.env

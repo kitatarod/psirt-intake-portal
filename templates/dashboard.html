@@ -17,6 +17,7 @@
             <th>CVSS</th>
             <th>Status</th>
             <th>Created</th>
+            <th>Completeness</th>
         </tr>
 
         {% for report in reports %}
@@ -38,6 +39,7 @@
                 </form>
             </td>
             <td>{{ report.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ report.completeness_score }}</td>
         </tr>
         {% endfor %}
     </table>

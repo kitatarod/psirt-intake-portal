@@ -23,3 +23,4 @@ class VulnerabilityReport(Base):
 
     status = Column(String(50), default="New")
     created_at = Column(DateTime, default=datetime.utcnow)
+    completeness_score = Column(Integer, default=0)
