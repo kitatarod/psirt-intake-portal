@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PSIRT Metrics</title>
+</head>
+<body>
+    <h1>PSIRT Intake Portal Metrics</h1>
+
+    <p>
+        This page summarizes basic evaluation metrics for the integrated PSIRT Intake Portal.
+        The metrics are based on stored vulnerability reports, completeness scoring, and workflow
+        status timestamps.
+    </p>
+
+    <h2>Summary Metrics</h2>
+
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>Metric</th>
+            <th>Result</th>
+            <th>Metric Type</th>
+        </tr>
+        <tr>
+            <td>Total submissions</td>
+            <td>{{ total_reports }}</td>
+            <td>Quantitative</td>
+        </tr>
+        <tr>
+            <td>Average completeness score</td>
+            <td>{{ average_completeness }}%</td>
+            <td>Quantitative</td>
+        </tr>
+        <tr>
+            <td>Average days to first status change</td>
+            <td>{{ average_days_to_first_status_change }}</td>
+            <td>Quantitative</td>
+        </tr>
+        <tr>
+            <td>Average days to closure</td>
+            <td>{{ average_days_to_closure }}</td>
+            <td>Quantitative</td>
+        </tr>
+        <tr>
+            <td>Dashboard clarity and usability</td>
+            <td>Simple table layout with visible status, timestamps, and completeness score</td>
+            <td>Qualitative</td>
+        </tr>
+    </table>
+
+    <h2>Status Distribution</h2>
+
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>Status</th>
+            <th>Number of Reports</th>
+        </tr>
+        {% for status, count in status_counts.items() %}
+        <tr>
+            <td>{{ status }}</td>
+            <td>{{ count }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Per-Report Response Metrics</h2>
+
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Completeness</th>
+            <th>Days to First Status Change</th>
+            <th>Days to Closure</th>
+        </tr>
+        {% for row in response_metric_rows %}
+        <tr>
+            <td>{{ row.id }}</td>
+            <td>{{ row.title }}</td>
+            <td>{{ row.status }}</td>
+            <td>{{ row.completeness_score }}%</td>
+            <td>
+                {% if row.days_to_first_status_change is not none %}
+                    {{ row.days_to_first_status_change }}
+                {% else %}
+                    Not available yet
+                {% endif %}
+            </td>
+            <td>
+                {% if row.days_to_closure is not none %}
+                    {{ row.days_to_closure }}
+                {% else %}
+                    Not available yet
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <p>
+        <a href="/dashboard">Back to Dashboard</a>
+    </p>
+
+    <p>
+        <a href="/">Back to Home</a>
+    </p>
+</body>
+</html>

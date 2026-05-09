@@ -1,3 +1,4 @@
+from collections import Counter
 from fastapi import FastAPI, Form, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -5,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.database import Base, engine, SessionLocal
 from app.models import VulnerabilityReport
-from app.core_logic import validate_submission, transition_status
+from app.core_logic import validate_submission, transition_status, calculate_response_metrics
 app = FastAPI(title="PSIRT Intake Portal")
 
 Base.metadata.create_all(bind=engine)
@@ -114,6 +115,75 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         context={"reports": reports}
     )
 
+@app.get("/metrics", response_class=HTMLResponse)
+def metrics(request: Request, db: Session = Depends(get_db)):
+    reports = db.query(VulnerabilityReport).all()
+
+    total_reports = len(reports)
+
+    if total_reports > 0:
+        average_completeness = round(
+            sum(report.completeness_score or 0 for report in reports) / total_reports,
+            2
+        )
+    else:
+        average_completeness = 0
+
+    status_counts = Counter(report.status for report in reports)
+
+    response_metric_rows = []
+    first_response_values = []
+    closure_values = []
+
+    for report in reports:
+        metric = calculate_response_metrics(
+            created_at=report.created_at,
+            first_status_changed_at=report.first_status_changed_at,
+            closed_at=report.closed_at
+        )
+
+        days_to_first_status_change = metric["days_to_first_status_change"]
+        days_to_closure = metric["days_to_closure"]
+
+        if days_to_first_status_change is not None:
+            first_response_values.append(days_to_first_status_change)
+
+        if days_to_closure is not None:
+            closure_values.append(days_to_closure)
+
+        response_metric_rows.append({
+            "id": report.id,
+            "title": report.title,
+            "status": report.status,
+            "completeness_score": report.completeness_score,
+            "days_to_first_status_change": days_to_first_status_change,
+            "days_to_closure": days_to_closure,
+        })
+
+    average_days_to_first_status_change = (
+        round(sum(first_response_values) / len(first_response_values), 2)
+        if first_response_values
+        else "Not available yet"
+    )
+
+    average_days_to_closure = (
+        round(sum(closure_values) / len(closure_values), 2)
+        if closure_values
+        else "Not available yet"
+    )
+
+    return templates.TemplateResponse(
+        request=request,
+        name="metrics.html",
+        context={
+            "total_reports": total_reports,
+            "average_completeness": average_completeness,
+            "status_counts": dict(status_counts),
+            "average_days_to_first_status_change": average_days_to_first_status_change,
+            "average_days_to_closure": average_days_to_closure,
+            "response_metric_rows": response_metric_rows,
+        }
+    )
 @app.post("/dashboard/{report_id}/status")
 def update_report_status(
     report_id: int,
@@ -130,7 +200,18 @@ def update_report_status(
     if not transition.is_valid:
         raise HTTPException(status_code=400, detail=transition.message)
 
+    # Record the first time an analyst changes the report status.
+    if report.first_status_changed_at is None and status != report.status:
+        report.first_status_changed_at = transition.changed_at
+
+    # Record the closure timestamp when the report moves to Closed.
+    if status == "Closed":
+        report.closed_at = transition.changed_at
+
+    # Keep a general last-updated timestamp for metrics and audit visibility.
+    report.updated_at = transition.changed_at
     report.status = status
+
     db.commit()
 
     return RedirectResponse(url="/dashboard", status_code=303)

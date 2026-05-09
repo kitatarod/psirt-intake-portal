@@ -23,4 +23,9 @@ class VulnerabilityReport(Base):
 
     status = Column(String(50), default="New")
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=True)
+    first_status_changed_at = Column(DateTime, nullable=True)
+    closed_at = Column(DateTime, nullable=True)
     completeness_score = Column(Integer, default=0)
+    attachment_filename = Column(String(255), nullable=True)
+    attachment_size_bytes = Column(Integer, nullable=True)
