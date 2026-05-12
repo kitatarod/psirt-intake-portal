@@ -126,21 +126,18 @@ def main():
     print("-" * 72)
 
     for row in results:
+        avg_latency = f"{row['average_latency_ms']} ms"
+        throughput = f"{row['throughput_requests_per_second']} req/s"
+        peak_memory = f"{row['peak_memory_kb']} KB"
+
         print(
             f"{row['route']:<15}"
             f"{row['requests']:<10}"
             f"{row['success_rate_percent']:<12}"
-            f"{row['average_latency_ms']} ms".ljust(15)
-            f"{row['throughput_requests_per_second']} req/s".ljust(15)
-            f"{row['peak_memory_kb']} KB"
+            f"{avg_latency:<15}"
+            f"{throughput:<15}"
+            f"{peak_memory}"
         )
-
-    chart_path = create_svg_chart(results)
-
-    print("\nPerformance chart created:")
-    print(chart_path)
-    print("\nOpen the SVG file in a browser and screenshot it for the report.")
-
 
 if __name__ == "__main__":
     main()
