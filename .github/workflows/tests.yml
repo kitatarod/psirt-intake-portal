@@ -2,9 +2,10 @@ name: Run Python Tests
 
 on:
   push:
-    branches: [ main, development, week5-core-logic ]
   pull_request:
-    branches: [ main, development ]
+    branches:
+      - main
+      - development
 
 jobs:
   test:
