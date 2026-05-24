@@ -9,3 +9,7 @@ psirt_portal.db
 uploads/*
 !uploads/.gitkeep
 .env
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
